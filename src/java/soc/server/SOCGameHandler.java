@@ -2028,7 +2028,7 @@ public class SOCGameHandler extends GameHandler
 
         case SOCGame.PLAY:
             srv.messageToGameKeyed(ga, true, "prompt.turn.to.roll.dice", player.getName());  // "It's Joe's turn to roll the dice."
-            promptedRoll = true;
+            //promptedRoll = true;
             if (sendRollPrompt)
                 srv.messageToGame(gname, new SOCRollDicePrompt (gname, player.getPlayerNumber()));
             

@@ -139,9 +139,54 @@ public class Bot
 		
 	}
 	
-	// SOCGame.START3B
-	private int rPos1 = -1;
-	private int rPos2 = -1;
+	public void PlayerEffect(SOCResourceSet rolled, String desc, int svp, boolean checkAdjacents, int node, int ptype, int pieceType, int portType, boolean all, SOCPlayingPiece piece, String na, int slas, SOCTradeOffer of, int node1, int node2){
+	    player.calcLongestRoad2() ;
+	    player.addRolledResources(rolled) ;
+	    player.addSpecialVPInfo(svp, desc) ;
+	    player.addLegalSettlement(node, checkAdjacents) ;
+	    player.getFaceId() ;
+	    player.getLastRoadCoord() ;
+	    player.getLastSettlementCoord() ;
+	    player.getName();
+	    player.getNeedToPickGoldHexResources();
+	    player.getNumKnights() ;
+	    player.getNumPieces(ptype);
+	    player.getPlayerNumber() ;
+	    player.getPublicVP() ;
+	    player.getScenarioPlayerEvents() ;
+	    player.getScenarioSVPLandAreas() ;
+	    player.getSpecialVP() ;
+	    player.getStartingLandAreasEncoded() ;
+	    player.getTotalVP() ;
+	    player.toString();
+	    player.canBuildInitialPieceType(pieceType);
+	    player.canPlaceSettlement(node);
+	    player.getCities();
+	    player.getCurrentOffer() ;
+	    player.getLRPaths();
+	    player.getNeedToDiscard();
+	    player.getPieces() ;
+	    player.getPortFlag(portType) ;
+	    player.getPortFlags() ;
+	    player.getPortMovePotentialLocations(all) ;
+	    player.getResourceRollStats();
+	    player.updatePotentials(piece);
+	    player.setStartingLandAreasEncoded(slas);
+	    player.setName(na);
+	    player.setCurrentOffer(of);
+	    player.isConnectedByRoad(node1, node2);
+	    player.incrementNumKnights();
+	}
+	
+	/*
+	 * 	if (player.hasLongestRoad())
+				{
+					
+				}
+	 */
+	
+	// SOCGame.START3B 
+	//**** TODO CHANGE .get(0) to intelligent value
 	public void DoRoadTurn()
 	{
 		CustomButton button = new CustomButton("DoRoadTurn", () ->
@@ -164,70 +209,123 @@ public class Bot
 				manager.putPiece(game, new SOCRoad(player, edgePositions.get(1), board));
 			}
 			
-			
-//			List<Integer> roadPositions = new ArrayList<Integer>();
-//			for(int i = 0; i < 1000; i++)
-//				if(player.isPotentialRoad(i))
-//					roadPositions.add(i);
-//			
-//			boolean first = false;
-//			if(rPos1 == -1)
-//			{
-//				rPos1 = roadPositions.get(0);
-//				first = true;
-//			}
-//			else
-//				rPos2 = roadPositions.get(0);
-//			
-//			manager.putPiece(game, new SOCRoad(player, (first ? rPos1 : rPos2), board));
-//			
-//			System.out.println("***Free road built. => (Edge: " + (first ? rPos1 : rPos2) + ") (Coord: " + board.edgeCoordToString((first ? rPos1 : rPos2)) + ")");
-//			
 			return 0;
 		});
 	}
 
-	// SOCGame.PLAY
+	// SOCGame.PLAY 
+	//***TODO NORMAL TURN
 	public void DoDiceTurn()
 	{
 		CustomButton button = new CustomButton("DoDiceTurn", () ->
 		{
+			// **** TODO ilk kartin seçilmesini saglamak
+			if (game.canRollDice(player.getPlayerNumber()))
+			{
+				manager.rollDice(game);
+				if (game.getCurrentDice() == 7)
+				{
+					
+				}
+			}else if (player.hasUnplayedDevCards())
+			{
+				player.getInventory();
+				manager.playDevCard(game, 0);
+				
+			} else if ( game.couldBuildRoad(player.getPlayerNumber()))
+			{
+				System.out.println("**** Roads of current player getRoads: " + player.getRoads());
+				System.out.println("**** getLastRoadCoord : " + player.getLastRoadCoord()); 
+				System.out.println("*** getRoad "+ player.getRoadNodes().toString());
+				List<Integer> roadPositions = player.getRoadNodes();
+				
+				for (int i = 0; i < player.getRoadNodes().size(); i++)
+				{
+					System.out.println("**** Roads of current Player GetRoads  : " + player.getRoadNodes().get(i));
+				}
+				
+				
+				for (int i = 0; i < roadPositions.size(); i++)
+				{
+					if (player.isPotentialRoad(roadPositions.get(i)))
+					{
+						game.buyRoad(player.getPlayerNumber());
+						manager.putPiece(game, new SOCRoad(player, roadPositions.get(i), game.getBoard()));		
+					}
+				}
+				
+			
+			} else if (game.couldBuildSettlement(player.getPlayerNumber()))
+			{
+				System.out.println("**** Roads of current player getRoads: " + player.getSettlements());
+				System.out.println("**** getLastRoadCoord : " + player.getLastSettlementCoord()); 
+				int[] settlementPositions = player.getPotentialSettlements_arr();
+				int location = settlementPositions[0];
+				if (game.couldBuildSettlement(player.getPlayerNumber()))
+				{
+					game.buySettlement(player.getPlayerNumber());
+					game.putPiece(new SOCSettlement(player, location, game.getBoard()));
+				}
+				
+			}else if (game.couldBuildCity(player.getPlayerNumber()))
+			{
+				System.out.println("*** Numbers Settlements touch " + player.getNumbers());
+			    Vector<SOCSettlement > settlements = player.getSettlements();
+				
+			}
+			
+			manager.buyDevCard(game);			
+			manager.endTurn(game);
 			return 0;
 		});
 	}
 
-	// SOCGame.WAITING_FOR_DISCARDS
+	// SOCGame.WAITING_FOR_DISCARDS 
+	//****TODO SELECT DISCARD INSTEAD OF NULL
 	public void DoDiscardTurn()
 	{
 		CustomButton button = new CustomButton("DoDiscardTurn", () ->
 		{
+			SOCResourceSet set = null;
+			if (player.getNeedToDiscard())
+			{
+			manager.discard(game, null);	
+			}
 			return 0;
 		});
 	}
-
+	
+	
 	// SOCGame.WAITING_FOR_ROBBER_OR_PIRATE
 	public void DoMoveRobberTurn()
 	{
 		CustomButton button = new CustomButton("DoMoveRobberTurn", () ->
 		{
+			manager.chooseRobber(game);
 			return 0;
 		});
 	}
 
 	// SOCGame.PLACING_ROBBER
+	//TODO  ***** ADD POSITION HEX
 	public void DoWillMoveRobberTurn()
 	{
 		CustomButton button = new CustomButton("DoWillMoveRobberTurn", () ->
 		{
+			int robberPositionHex = 0;
+			manager.moveRobber(game, player, robberPositionHex);
 			return 0;
 		});
 	}
 
 	// SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER
+	// TODO **** ADD PLAYERTOSTEAL NUMBER
 	public void DoSelectPlayerToStealTurn()
 	{
 		CustomButton button = new CustomButton("DoSelectPlayerToStealTurn", () ->
 		{
+			int playerToSteal = 0;
+			manager.choosePlayer(game, playerToSteal);
 			return 0;
 		});
 	}
@@ -241,32 +339,18 @@ public class Bot
 		});
 	}
 
-	public void RollDice(GameManager GM)
-	{
-		CustomButton button = new CustomButton("RollDice", () ->
-		{
-			return 0;
-		});
-	}
-
-	public void EndTurn(GameManager GM)
-	{
-		CustomButton button = new CustomButton("EndTurn", () ->
-		{
-			return 0;
-		});
-	}
 
 	public void StartGame(GameManager GM)
 	{
 		CustomButton button = new CustomButton("StartGame", () ->
 		{
+			GM.startGame(game);
 			return 0;
 		});
 	}
 }
 
-/*
+
 
 abstract class GameComponents
 {
@@ -589,4 +673,4 @@ abstract class Trade extends GameComponents
 		});
 	}
 }
-*/
+
