@@ -32,10 +32,8 @@ public class Bot
 		
 		for (int id : hexes)
 		{
-		  System.out.println("Number for hex #" + id + " => " +
-		  board.getNumberOnHexFromCoord(id));
-		  System.out.println( giveHexType(id));
-		  }
+		  System.out.println( giveHexType(id) + " " + board.getNumberOnHexFromCoord(id));
+		}
 		 
 		// System.out.println("Total " + hexes.length + " hexes get.");
 	}
@@ -45,8 +43,10 @@ public class Bot
 		{
 		case SOCBoard.DESERT_HEX:
 			return "Hex #" + hexCoord + " => Desert" ;
+			
 		case SOCBoard.CLAY_HEX:
 			return "Hex #" + hexCoord + " => Clay";
+			
 		case SOCBoard.ORE_HEX:
 			return "Hex #" + hexCoord + " => Ore";
 			
@@ -63,125 +63,141 @@ public class Bot
 			return "Hex #" + hexCoord + " => Water";
 			
 		default:
-			return "Hex #" + hexCoord + " => Unknown";
+		//	return "Hex #" + hexCoord + " => Unknown";
+			return null;
+		}
+	}
+	
+
+	double calculateHexValue(int hexCoord){
+		return calculateTypeValue(hexCoord) * calculateNumberValue(hexCoord) ;
+	}
+	
+	double calculateTypeValue(int hexCoord){
+		switch (board.getHexTypeFromCoord(hexCoord))
+		{
+		case SOCBoard.DESERT_HEX:
+			return 0;
+		case SOCBoard.CLAY_HEX:
+			return 3;
+		case SOCBoard.ORE_HEX:
+			return 1;
 			
+		case SOCBoard.SHEEP_HEX:
+			return 2;
+			
+		case SOCBoard.WHEAT_HEX:
+			return 3;
+			
+		case SOCBoard.WOOD_HEX:
+			return 3;
+			
+		case SOCBoard.WATER_HEX:
+			return 0;
+			
+		default:
+			return -1;
 		}
-	}
-
-	int[] findNodes(int id)
-	{
-		int[] nodes = board.getAdjacentNodesToHex(id);
-		for (int dir = 0; dir < 6; dir++)
-		{
-			switch (dir)
-			{
-			case 0:
-				System.out.println("Node #" + nodes[dir] + " => North");
-				break;
-			case 1:
-				System.out.println("Node #" + nodes[dir] + " => North East");
-				break;
-			case 2:
-				System.out.println("Node #" + nodes[dir] + " => South East");
-				break;
-			case 3:
-				System.out.println("Node #" + nodes[dir] + " => South ");
-				break;
-			case 4:
-				System.out.println("Node #" + nodes[dir] + " => South West");
-				break;
-			case 5:
-				System.out.println("Node #" + nodes[dir] + " => North West");
-				break;
-			default:
-				System.out.println("Node #" + nodes[dir] + " => Unknown");
-				break;
-			}
-		}
-		return nodes;
-	}
-
-	public void Test(){
-		int [] settlementPositions = player.getPotentialSettlements_arr();
-	  
-		System.out.println();
-		System.out.println("Settlement Position 0 is " + 	Position.NodeToPosition(114) + "  " +Position.PositionToNode(Position.NodeToPosition(114)));
-		Position.NodeToPosition(settlementPositions[0]);
-		Position.PositionToNode(Position.NodeToPosition(settlementPositions[0]));
-		System.out.println("");
-		
 	}
 	
-
-	double calculateScoreMaterial(int Type, int Number)
-	{
-		int[] hexes = board.getLandHexCoords();
-
-		List <Position> hexCoordinates = new ArrayList<Position>();
-		for (int id : hexes)
-		{
-		//	hexCoordinates[id] = Position.NodeToPosition(id);
-			System.out.println("Calculating Hex Number " + id);
-			System.out.println(Position.NodeToPosition(id));
-			hexCoordinates.add(Position.NodeToPosition(id));
-			System.out.println(Position.NodeToPosition(board.getAdjacentNodeToHex(id, 0)));
-		}
+	double calculateNumberValue(int HexId){
 		
-	 	Position a = new  Position(hexCoordinates.get(0).X+1, hexCoordinates.get(0).Y );
-	 	System.out.println("This is A : " + a);
-		return 0;
+		switch (board.getNumberOnHexFromCoord(HexId))
+		{
+		case 0:
+			return 0;
+		case 1:
+			return 0;
+		case 2 :
+			return 1;
+		case 3 :
+			return 2;
+		case 4 :
+			return 3;
+		case 5 :
+			return 4;
+		case 6 :
+			return 5;
+		case 12 :
+			return 1;
+		case 11 :
+			return 2;
+		case 10 :
+			return 3;
+		case 9 :
+			return 4;
+		case 8 :
+			return 5;
+		default:
+			return 0;
+		}
 	}
-	
+
 	/** SOCGame.START3A */
-	private int sPos1 = -1;
-	private int sPos2 = -1;
 
 	public void DoSettlementTurn()
 	{
-		calculateScoreMaterial(0,0);
 		
 		CustomButton button = new CustomButton("DoSettlementTurn", () ->
 		{
-			int[] settlementPositions = player.getPotentialSettlements_arr();
-
-			int firstPosition = settlementPositions[0];
-			System.out.println("getHexTypeFromCoord  " + board.getHexTypeFromCoord(settlementPositions[0]));
-			System.out.println("Our first Position" + Position.NodeToPosition(settlementPositions[0]));
 			
 			List <Position> nodes = new ArrayList<Position>();
+			
+			int maxValue = 0;
+			int maxValueSettlementNode = 0;
+			Position maxValuePosition = new Position (0 , 0);
 			for (int i = 1; i < 13; i++)
 			{
 				for (int j = 1; j < 13; j++)
 				{
-					board.getAdjacentHexesToNode(Position.PositionToNode(new Position(i,j)));
 					System.out.println("AdjacentHexesToNode from Position : " + new Position(i,j));
 					System.out.println("Hexes Near Position " + board.getAdjacentHexesToNode(Position.PositionToNode(new Position(i,j))));
 					nodes.add(new Position(i,j));
 					Vector<Integer> neighbourHexes = board.getAdjacentHexesToNode(Position.PositionToNode(new Position(i,j)));
-					for (int k = 0; k < neighbourHexes.size(); k++)
+					int totalValue = 0;
+					totalValue = getNodeValue(new Position(i,j) , neighbourHexes);
+					
+					if (totalValue > maxValue)
 					{
-						System.out.println("Type Of Hex "+ neighbourHexes.get(k) + " Type : " + giveHexType(neighbourHexes.get(k)) + "  Number : " 
-					+ board.getHexNumFromCoord(neighbourHexes.get(k)));
-						
+						maxValue = totalValue;
+						maxValueSettlementNode = Position.PositionToNode(new Position(i,j));
+						maxValuePosition = new Position (i , j);
 					}
+					System.out.println("### Total Value ### " + totalValue);
 				}
 			}
+			System.out.println("\n ### Max Value ### " + maxValue + " on Node ### " +  maxValuePosition + " \n" );
+		
+			manager.putPiece(game, new SOCSettlement(player,  maxValueSettlementNode, board));
 			
-			boolean first = false;
-			if (sPos1 == -1)
-			{
-				sPos1 = settlementPositions[0];
-				first = true;
-			} else
-				sPos2 = settlementPositions[0];
-
-			manager.putPiece(game, new SOCSettlement(player, (first ? sPos1 : sPos2), board));
-
-			System.out.println("***Free settlement built. => (Node: " + (first ? sPos1 : sPos2) + ") (Coord: "
-					+ board.nodeCoordToString((first ? sPos1 : sPos2)) + ")");
-
 			return 0;
 		});
+	}
+
+	private int getNodeValue(Position node, Vector<Integer> neighbourHexes)
+	{
+		int id;
+		int totalValue = 0;
+		for (int k = 0; k < neighbourHexes.size(); k++)
+		{
+			id = neighbourHexes.get(k);
+		if (giveHexType(id)!= null)
+		{
+			System.out.println( giveHexType(id) + " " + board.getNumberOnHexFromCoord(id) + " HexValue # " + calculateHexValue(id));
+			totalValue += calculateHexValue(id)*isPotentialSettlement(Position.PositionToNode(node));
+		}
+		}
+		return totalValue;
+	}
+
+	private int isPotentialSettlement (int location){
+		HashSet<Integer> settlementPositions = player.getPotentialSettlements();
+		if (settlementPositions.contains(location))
+		{
+			return 1;
+		}else {
+			return -1;
+		}
 	}
 
 	/**
@@ -189,7 +205,6 @@ public class Bot
 	 */
 	public void DoRoadTurn()
 	{
-		Test();
 		
 		getPlayerRoads(0);
 		getPlayerRoads(1);
@@ -201,10 +216,21 @@ public class Bot
 		CustomButton button = new CustomButton("DoRoadTurn", () ->
 		{
 			int settlementCoord = player.getLastSettlementCoord();
-			System.out.println("Last settlement coord : " + settlementCoord);
+			System.out.println("Last settlement coord : " + Position.NodeToPosition(settlementCoord));
 			Vector<Integer> edgePositions = board.getAdjacentEdgesToNode(settlementCoord);
 			System.out.println("Edge positions next to settlement : " + edgePositions);
 
+			System.out.println("### Building Road on ### " + Position.NodeToPosition(edgePositions.get(0)));
+			System.out.println("### Building Road on ### " + Position.NodeToPosition(edgePositions.get(1)));
+			System.out.println("### Building Road on ### " + Position.NodeToPosition(edgePositions.get(2)));
+
+			System.out.println("### " +findBestNodeInCircle(Position.NodeToPosition(settlementCoord))+ " " );
+			int edgePositionFor2Nodes =
+			board.getAdjacentEdgeToNode2Away(settlementCoord, Position.PositionToNode(findBestNodeInCircle(Position.NodeToPosition(settlementCoord)).Y));
+		
+			
+			manager.putPiece(game, new SOCRoad(player, edgePositionFor2Nodes, board));
+			/*
 			if (board.isNodeOnLand(edgePositions.get(0)))
 			{
 				if (player.isPotentialRoad(edgePositions.get(0)))
@@ -214,10 +240,141 @@ public class Bot
 			} else
 			{
 				manager.putPiece(game, new SOCRoad(player, edgePositions.get(1), board));
-			}
+			}*/
 
 			return 0;
 		});
+	}
+
+	
+	public Integer checkSettlementLocationMaxValue (){
+		int maxValue = 0;
+		int maxValueNode = 0;
+		Position maxValuePosition = new Position(0,0);
+		
+		
+		return 0;
+	}
+	
+	public PositionPair findBestNodeInCircle(Position origin){
+		
+		int x = origin.X;
+		int y = origin.Y;
+
+		List <Position> positionList = new ArrayList <Position>();
+		
+		//check SouthEast
+		Position posSE = new Position(x+2, y);
+		positionList.add(posSE);
+		
+		//check SouthWest
+		Position posSW = new Position(x-2, y);
+		positionList.add(posSW);
+		
+		// check East
+		Position posE = new Position(x+2, y+2);
+		positionList.add(posE);
+		
+		//check West
+		Position posW = new Position(x-2, y-2);
+		positionList.add(posW);
+		
+		//check NorthEast
+		Position posNE = new Position(x, y+2);
+		positionList.add(posNE);
+		
+		//check NorthWest
+		Position posNW = new Position(x, y-2);
+		positionList.add(posNW);
+		int maxValue = 0;
+		Position maxValuePosition = new Position(0,0);
+		for (int i = 0; i < positionList.size(); i++)
+		{
+			int totalValue = 0;
+			
+			Vector<Integer> neighbourHexes = board.getAdjacentHexesToNode(Position.PositionToNode( positionList.get(i)));
+			
+			totalValue = getNodeValue(positionList.get(i) , neighbourHexes);
+			
+			if (totalValue > maxValue)
+			{
+				maxValue = totalValue;
+				maxValuePosition = positionList.get(i);
+			}
+			
+		}
+		System.out.println("### Best Node in Circle For " + origin + " is " + maxValuePosition + " Value is " + maxValue);
+		
+		return new PositionPair(origin, maxValuePosition);
+	}
+	
+	public Integer checkSettlementLocation(Position origin){
+		
+		List <Position> nodes = new ArrayList <Position>();
+		HashSet<Integer> settlementPositions = player.getPotentialSettlements();
+		List <PositionPair> valueNodes = new ArrayList <PositionPair>();
+		
+		if (settlementPositions.contains(Position.PositionToNode(origin)))
+		{
+			
+			Vector<Integer> neighbourHexes = board.getAdjacentHexesToNode(Position.PositionToNode(origin));
+			int id;
+			int totalValue = 0;
+			for (int k = 0; k < neighbourHexes.size(); k++)
+			{
+				id = neighbourHexes.get(k);
+			if (giveHexType(id)!= null)
+			{
+				System.out.println( giveHexType(id) + " " + board.getNumberOnHexFromCoord(id) + " HexValue # " + calculateHexValue(id));
+				totalValue += calculateHexValue(id)*isPotentialSettlement(Position.PositionToNode(origin));
+			}
+			}
+			
+			/*
+			if (totalValue > maxValue)
+			{
+				maxValue = totalValue;
+				maxValueNode = Position.PositionToNode(origin);
+				maxValuePosition = origin;
+			}
+			*/
+			
+		}
+		
+		int x = origin.X;
+		int y = origin.Y;
+		
+				//check SouthEast
+				Position posSE = new Position(x+2, y);
+				checkSettlementLocation(posSE);
+				
+				//check SouthWest
+				Position posSW = new Position(x-2, y);
+				checkSettlementLocation(posSW);
+				
+				// check East
+				Position posE = new Position(x+2, y+2);
+				checkSettlementLocation(posE);
+				
+				//check West
+				Position posW = new Position(x-2, y-2);
+				
+				//check NorthEast
+				Position posNE = new Position(x, y+2);
+				checkSettlementLocation(posNE);
+				
+				//check NorthWest
+				Position posNW = new Position(x, y-2);
+				checkSettlementLocation(posNW);
+			
+	
+		return 0;
+	}
+	
+	private void checkPositionToSettle(Position pos)
+	{
+		// TODO Auto-generated method stub
+		
 	}
 
 	/**
@@ -297,15 +454,147 @@ public class Bot
 			
 				
 				//manager.putPiece(game, new City(player ,  ,game.getBoard()));
-				
 			
 			}
+			
+			
 
-			manager.buyDevCard(game);
+			//manager.buyDevCard(game);
 			manager.endTurn(game);
 			return 0;
 		});
 	}
+	
+	public void findResourceStats(){
+	
+		// Code For Finding Least Amount of ResourceType
+		int leastAmount = 7;
+		int leastResources = -1;
+		int maxAmount = 4;
+		int maxResources = -1;
+		
+		List <Integer> resourceList = new ArrayList<Integer>();
+		resourceList.add(  SOCResourceConstants.CLAY);
+		resourceList.add(  SOCResourceConstants.WHEAT);
+		resourceList.add(  SOCResourceConstants.SHEEP);
+		resourceList.add(  SOCResourceConstants.WOOD);
+
+		for (int i = 0; i < resourceList.size(); i++)
+		{
+			if (player.getResources().getAmount(resourceList.get(i)) <= leastAmount)
+			{
+				leastAmount = player.getResources().getAmount(resourceList.get(i));
+				leastResources = resourceList.get(i);
+			}
+			
+			if (player.getResources().getAmount(resourceList.get(i)) >= maxAmount)
+			{
+				maxAmount = player.getResources().getAmount(resourceList.get(i));
+				maxResources = resourceList.get(i);
+			}
+		}
+		
+		if(maxResources != -1 && leastResources != -1)
+		{
+			SOCResourceSet give = null;
+			switch(maxResources)
+			{
+			case SOCResourceConstants.CLAY:
+				give = new SOCResourceSet(4, 0, 0, 0, 0, 0);
+				System.out.println("Give 4 Clay");
+				break;
+			case SOCResourceConstants.WHEAT:
+				give = new SOCResourceSet(0, 0, 0, 4, 0, 0);
+				System.out.println("Give 4 Wheat");
+				break;
+			case SOCResourceConstants.SHEEP:
+				give = new SOCResourceSet(0, 0, 4, 0, 0, 0);
+				System.out.println("Give 4 Sheep");
+				break;
+			case SOCResourceConstants.WOOD:
+				give = new SOCResourceSet(0, 0, 0, 0, 4, 0);
+				System.out.println("Give 4 Wood");
+				break;
+			}
+			
+			SOCResourceSet get = null;
+			switch(leastResources)
+			{
+			case SOCResourceConstants.CLAY:
+				get = new SOCResourceSet(1, 0, 0, 0, 0, 0);
+				System.out.println("Get 1 Clay");
+				break;
+			case SOCResourceConstants.WHEAT:
+				get = new SOCResourceSet(0, 0, 0, 1, 0, 0);
+				System.out.println("Get 1 Wheat");
+				break;
+			case SOCResourceConstants.SHEEP:
+				get = new SOCResourceSet(0, 0, 1, 0, 0, 0);
+				System.out.println("Get 1 Sheep");
+				break;
+			case SOCResourceConstants.WOOD:
+				get = new SOCResourceSet(0, 0, 0, 0, 1, 0);
+				System.out.println("Get 1 Wood");
+				break;
+			}
+			
+			if(game.canMakeBankTrade(give, get))
+			{
+				game.makeBankTrade(give, get);
+				System.out.println("***Make Bank Trade");
+			}
+		}
+		
+		/*SOCResourceSet give = player.getResources().setAmount(4, maxResources);
+		SOCResourceSet get = player.getResources().setAmount(1, leastResources);
+		
+		if (game.canMakeBankTrade(give, get))
+		{
+			game.makeBankTrade(give, get);
+		}
+		
+		if (game.canMakeTrade(offering, accepting))
+		{
+			game.makeTrade(offering, accepting);
+		}*/
+		
+		player.getResources().getAmount(SOCResourceConstants.CLAY);
+		player.getResources().getAmount(SOCResourceConstants.WHEAT);
+		player.getResources().getAmount(SOCResourceConstants.SHEEP);
+		player.getResources().getAmount(SOCResourceConstants.ORE);
+		player.getResources().getAmount(SOCResourceConstants.WOOD);
+		
+		
+		player.getResourceRollStats();
+		player.getRolledResources();
+		player.getResources().contains(SOCResourceConstants.CLAY);
+		player.getResources().contains(SOCResourceConstants.WHEAT);
+		player.getResources().contains(SOCResourceConstants.SHEEP);
+		player.getResources().contains(SOCResourceConstants.WOOD);
+		
+		if (player.getResources().getTotal() >= 7)
+		{
+		
+			if (!player.getResources().contains(SOCResourceConstants.CLAY))
+			{
+				
+			}
+			if (!player.getResources().contains(SOCResourceConstants.WHEAT))
+			{
+				
+			}
+			if (!player.getResources().contains(SOCResourceConstants.SHEEP))
+			{
+				
+			}
+			if (!player.getResources().contains(SOCResourceConstants.WOOD))
+			{
+				
+			}
+		}
+		
+	}
+	
 
 	public void getPlayerRoads(int x)
 	{
@@ -354,6 +643,8 @@ public class Bot
 			SOCResourceSet set = null;
 			if (player.getNeedToDiscard())
 			{
+				
+				
 				manager.discard(game, null);
 			}
 			return 0;
@@ -370,15 +661,48 @@ public class Bot
 		});
 	}
 
+	
+	public List <SOCSettlement> getAllSettlements(){
+		List <SOCSettlement> settlements = new ArrayList <SOCSettlement>();
+		
+		for (int i = 0; i < game.getPlayers().length; i++)
+		{
+			settlements.addAll( game.getPlayer(i).getSettlements());
+		}
+		
+		settlements.removeAll (player.getSettlements());
+		return settlements;
+	}
+	
+	private int playerToSteal = 0;
 	/**
-	 * SOCGame.PLACING_ROBBER TODO ***** ADD POSITION HEX
+	 * SOCGame.PLACING_ROBBER TODO ***** ADD POSITION HEX --- Added Random Player settlement Hex coord Other than "Player"
 	 */
 	public void DoWillMoveRobberTurn()
 	{
 		CustomButton button = new CustomButton("DoWillMoveRobberTurn", () ->
 		{
 			int robberPositionHex = 0;
-			manager.moveRobber(game, player, robberPositionHex);
+				
+			 Vector<Integer> hexList = board.getAdjacentHexesToNode(getAllSettlements().get(0).getCoordinates());
+		
+			 int robberHex = hexList.get(0);
+			Vector<SOCPlayer> players = game.getPlayersOnHex(robberHex);
+			
+			
+			playerToSteal = 0;
+			for (int i = 0; i < players.size(); i++)
+			{
+				if (!(players.get(i).getPlayerNumber() == player.getPlayerNumber()))
+				{
+					playerToSteal = players.get(i).getPlayerNumber();
+
+				} else {
+					System.out.println("### Choose Another Player to Steal ###");
+				}
+			}
+			manager.moveRobber(game, player, robberHex);
+
 			return 0;
 		});
 	}
@@ -390,8 +714,10 @@ public class Bot
 	{
 		CustomButton button = new CustomButton("DoSelectPlayerToStealTurn", () ->
 		{
-			int playerToSteal = 0;
+			
 			manager.choosePlayer(game, playerToSteal);
+ 
+//			manager.choosePlayer(game, playerToSteal, robberHex);
 			return 0;
 		});
 	}

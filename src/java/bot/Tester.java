@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import bot.BitwiseOperations.Position;
 import soc.client.SOCPlayerClient;
 import soc.client.SOCPlayerClient.GameManager;
 import soc.game.SOCBoard;
@@ -418,4 +419,92 @@ abstract class Trade extends GameComponents
 				+ "isHexOnWater  " + board.isHexOnWater(hexCoord) + "\n" + "roadAtEdge  " + board.roadAtEdge(edgeCoord)
 				+ "\n" + " hello ");
 	}
+	
+	double calculateScoreMaterial(int Type, int Number)
+	{
+		int[] hexes = board.getLandHexCoords();
+
+		List <Position> hexCoordinates = new ArrayList<Position>();
+		for (int id : hexes)
+		{
+		//	hexCoordinates[id] = Position.NodeToPosition(id);
+			System.out.println("Calculating Hex Number " + id);
+			hexCoordinates.add(Position.NodeToPosition(id));
+		}
+		
+	 	Position a = new  Position(hexCoordinates.get(0).X+1, hexCoordinates.get(0).Y );
+	 	System.out.println("This is A : " + a);
+		return 0;
+	}
+	
+
+	int[] findNodes(int id)
+	{
+		int[] nodes = board.getAdjacentNodesToHex(id);
+		for (int dir = 0; dir < 6; dir++)
+		{
+			switch (dir)
+			{
+			case 0:
+				System.out.println("Node #" + nodes[dir] + " => North");
+				break;
+			case 1:
+				System.out.println("Node #" + nodes[dir] + " => North East");
+				break;
+			case 2:
+				System.out.println("Node #" + nodes[dir] + " => South East");
+				break;
+			case 3:
+				System.out.println("Node #" + nodes[dir] + " => South ");
+				break;
+			case 4:
+				System.out.println("Node #" + nodes[dir] + " => South West");
+				break;
+			case 5:
+				System.out.println("Node #" + nodes[dir] + " => North West");
+				break;
+			default:
+				System.out.println("Node #" + nodes[dir] + " => Unknown");
+				break;
+			}
+		}
+		return nodes;
+	}
+	
+
+	public void Test(){
+		int [] settlementPositions = player.getPotentialSettlements_arr();
+	  
+		System.out.println();
+		System.out.println("Settlement Position 0 is " + 	Position.NodeToPosition(114) + "  " +Position.PositionToNode(Position.NodeToPosition(114)));
+		Position.NodeToPosition(settlementPositions[0]);
+		Position.PositionToNode(Position.NodeToPosition(settlementPositions[0]));
+		System.out.println("");
+		
+	}
+	
+	void calculateMaxValue (int node, int totalValue, int maxValue){
+		if (totalValue > maxValue)
+		{
+			maxValue = totalValue;
+		}
+	}
+	
+	private int isThereAnotherPlayer(int location)
+	{
+	  SOCPlayer[] playersList = game.getPlayers();
+		int identifier = 1;
+
+		for (int i = 0; i < playersList.length; i++)
+		{
+			if (playersList[i].getSettlements().contains(location))
+			{
+				System.out.println("Player " + playersList[i] + " have a settlement on " + location);
+				identifier = identifier * -1;
+			}
+		}
+		return identifier;
+	}
+	
+	
 }
