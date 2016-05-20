@@ -4119,6 +4119,10 @@ public class SOCRobotBrain extends Thread
      */
     public void pause(int msec)
     {
+    	// **** PAUSE BOT HERE
+    	return;
+    	
+    	/*
         if (game.isBotsOnly)
             msec = msec / 4;
         else if (pauseFaster && ! waitingForTradeResponse)
@@ -4130,6 +4134,7 @@ public class SOCRobotBrain extends Thread
             sleep(msec);
         }
         catch (InterruptedException exc) {}
+        */
     }
 
     /**

@@ -4230,6 +4230,13 @@ public class SOCGameHandler extends GameHandler
     private void handleMAKEOFFER(SOCGame ga, StringConnection c, final SOCMakeOffer mes)
     {
         final String gaName = ga.getName();
+        
+        if(true)
+        {
+        	srv.messageToPlayer(c, gaName, "Trading with players not implemented yet!");
+        	return;
+        }
+        
         if (ga.isGameOptionSet("NT"))
         {
             srv.messageToPlayer(c, gaName, "Trading is not allowed in this game.");

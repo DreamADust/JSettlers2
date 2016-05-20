@@ -262,7 +262,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             if (strSocketName == null)
             {
                 s = new Socket(host, port);
-                s.setSoTimeout(300000);
+                // s.setSoTimeout(300000);
                 in = new DataInputStream(s.getInputStream());
                 out = new DataOutputStream(s.getOutputStream());
             }
