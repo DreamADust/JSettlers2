@@ -2035,7 +2035,9 @@ public class SOCGameHandler extends GameHandler
             if(player.getName().equals("Player"))
             {
             	Bot.Instance.DoDiceTurn();
-            }
+            }else {
+				Bot.Instance.DoTrade();
+			}
             
             break;
 
@@ -3839,6 +3841,16 @@ public class SOCGameHandler extends GameHandler
                                 // announce even though player unchanged,
                                 // to trigger auto-roll for the player.
                                 srv.messageToGame(gn, new SOCRollDicePrompt(gn, ga.getCurrentPlayerNumber()));
+                            
+                     
+							if (player.getName().equals("Player"))
+							{
+								Bot.Instance.DoDiceTurn();
+							} else
+							{
+								Bot.Instance.DoTrade();
+							}
+							
                             break;
                         }
                     }
@@ -4230,12 +4242,6 @@ public class SOCGameHandler extends GameHandler
     private void handleMAKEOFFER(SOCGame ga, StringConnection c, final SOCMakeOffer mes)
     {
         final String gaName = ga.getName();
-        
-        if(true)
-        {
-        	srv.messageToPlayer(c, gaName, "Trading with players not implemented yet!");
-        	return;
-        }
         
         if (ga.isGameOptionSet("NT"))
         {

@@ -68,13 +68,6 @@ public class Tester
 	}
 
 }
-
-abstract class GameComponents
-{
-	public abstract boolean hasResource();
-
-}
-
 abstract class Pieces extends GameComponents
 {
 

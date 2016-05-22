@@ -13,6 +13,16 @@ public class IntegerPair
 	@Override
 	public int hashCode() { return X  ^  Y ; }
 	
+	@Override
+	public boolean equals(Object obj)
+	{
+		if(obj == null) return false;
+		if(!(obj instanceof IntegerPair)) return false;
+		if(obj == this) return true;
+		IntegerPair other = (IntegerPair)obj;
+		return X.equals(other.X) && Y.equals(other.Y);
+	}
+	
 	public Integer getX(){
 		return X;
 	}

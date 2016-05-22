@@ -92,7 +92,7 @@ class SOCForceEndTurnThread extends Thread
             System.err.println("L9120: internal error: can't find connection for bot " + rname);
             return;  // shouldn't happen
         }
-
+        
         // if it's the built-in type, print brain variables
         SOCClientData scd = (SOCClientData) rconn.getAppData();
         if (scd.isBuiltInRobot)

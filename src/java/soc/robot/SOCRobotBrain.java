@@ -4120,6 +4120,15 @@ public class SOCRobotBrain extends Thread
     public void pause(int msec)
     {
     	// **** PAUSE BOT HERE
+    	try
+    	{
+    		yield();
+    		sleep(100);
+    	}
+    	catch (Exception ex)
+    	{
+    		
+    	}
     	return;
     	
     	/*

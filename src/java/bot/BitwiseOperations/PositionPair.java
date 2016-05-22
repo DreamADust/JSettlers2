@@ -5,6 +5,8 @@ public class PositionPair
 	public Position X;
 	public Position Y;
 	
+
+	
 	public PositionPair(Position x, Position y){
 		X = x;
 		Y = y;
