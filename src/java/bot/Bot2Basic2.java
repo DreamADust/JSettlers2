@@ -250,7 +250,6 @@ public class Bot2Basic2
 		CustomButton button = new CustomButton("DoRoadTurn", () ->
 		{
 			int settlementCoord = player.getLastSettlementCoord();
-			Vector<Integer> edgePositions = board.getAdjacentEdgesToNode(settlementCoord);
 			int bestNode = Position.PositionToNode(findBestNodeInCircle(Position.NodeToPosition(settlementCoord)).Y);
 			int edgePositionFor2Nodes = board.getAdjacentEdgeToNode2Away(settlementCoord, bestNode);
 

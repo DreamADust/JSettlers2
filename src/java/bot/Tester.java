@@ -68,7 +68,7 @@ public class Tester
 	}
 
 }
-abstract class Pieces extends GameComponents
+abstract class Pieces 
 {
 
 	protected SOCResourceSet resource;
@@ -76,6 +76,12 @@ abstract class Pieces extends GameComponents
 	public Pieces(SOCResourceSet resource)
 	{
 		this.resource = resource;
+	}
+
+	public boolean hasResource()
+	{
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	public int Build()
@@ -100,7 +106,7 @@ abstract class Pieces extends GameComponents
 
 }
 
-class Cards extends GameComponents
+class Cards 
 {
 	private SOCResourceSet resource;
 	private SOCGame game;
@@ -294,7 +300,7 @@ class Cities extends Pieces
 	}
 }
 
-abstract class Robber extends GameComponents
+abstract class Robber
 {
 	SOCGame game;
 	SOCPlayer player;
@@ -333,7 +339,7 @@ abstract class Robber extends GameComponents
 	}
 }
 
-abstract class Trade extends GameComponents
+abstract class Trade 
 {
 	SOCPlayer player;
 	SOCGame game;
@@ -498,6 +504,46 @@ abstract class Trade extends GameComponents
 		}
 		return identifier;
 	}
+	
+
+	public void testGetRoads()
+	{
+		List<SOCRoad> realRoadPositions = player.getRoads();
+		List<Integer> roadNodes = player.getRoadNodes();
+
+		for (int i = 0; i < realRoadPositions.size(); i++)
+		{
+			int[] nearNodes = realRoadPositions.get(i).getAdjacentNodes();
+			for (int j = 0; j < nearNodes.length; j++)
+			{
+				System.out.println("##### Adjacent Nodes real RoadPos : " + nearNodes[i]);
+
+			}
+			System.out.println(
+					"##### Adjacent Nodes real RoadPos length : " + realRoadPositions.get(i).getAdjacentNodes().length);
+
+		}
+
+	}
+	
+
+	public void testCalcRoads()
+	{
+		System.out.println("##### LongestRoadPath :" + player.getLRPaths());
+		System.out.println("##### CALCLongestRoad : " + player.calcLongestRoad2());
+		System.out.println("##### HasPotentialRoad : " + player.hasPotentialRoad());
+	}
+	
+	public void getPlayerRoads(int x)
+	{
+		for (int i = 0; i < game.getPlayer(x).getRoadNodes().size(); i++)
+		{
+			System.out.println("**** Roads of Player " + x + " GetRoadNodes " + i + " :  "
+					+ game.getPlayer(x).getRoadNodes().get(i));
+			System.out.println("##### IsLegalRoad : " + player.isLegalRoad(game.getPlayer(x).getRoadNodes().get(i)));
+		}
+	}
+
 	
 	
 }

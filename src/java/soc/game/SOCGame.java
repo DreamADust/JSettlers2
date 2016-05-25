@@ -5183,16 +5183,21 @@ public class SOCGame implements Serializable, Cloneable
 
         if (!players[pn].getNeedToDiscard())
         {
-            return false;
+        	System.out.println("*******need to discard is false");
+            return true;
+            //TODO RETURN FALSE
         }
 
         if (rs.getTotal() != (resources.getTotal() / 2))
         {
+        	System.out.println("*******Resource Number is False");
             return false;
         }
 
         if (!resources.contains(rs))
         {
+        	System.out.println("*******Resource Doesn't Contain is False");
+
             return false;
         }
 

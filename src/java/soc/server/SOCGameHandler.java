@@ -1601,6 +1601,8 @@ public class SOCGameHandler extends GameHandler
         if ((ga.getCurrentDice() == 7) && pl.getNeedToDiscard())
         {
             srv.messageToPlayer(c, new SOCDiscardRequest(gaName, pl.getResources().getTotal() / 2));
+            
+            System.out.println("******* DiscardRequest");
         }
         else if (ga.hasSeaBoard)
         {
@@ -2035,9 +2037,7 @@ public class SOCGameHandler extends GameHandler
             if(player.getName().equals("Player"))
             {
             	Bot.Instance.DoDiceTurn();
-            }else {
-				Bot.Instance.DoTrade();
-			}
+            }
             
             break;
 
@@ -2106,7 +2106,7 @@ public class SOCGameHandler extends GameHandler
             Arrays.fill(choices, false);
             if (canStealNone)
                 choices[ga.maxPlayers] = true;
-
+            
             Enumeration<SOCPlayer> plEnum = ga.getPossibleVictims().elements();
 
             while (plEnum.hasMoreElements())
@@ -2125,8 +2125,13 @@ public class SOCGameHandler extends GameHandler
                 
                 if(ga.getPlayer(ga.getCurrentPlayerNumber()).getName().equals("Player"))
                 {
-                	Bot.Instance.DoSelectPlayerToStealTurn();
                 }
+                
+                if (player.getName().equals("Player")){
+                	Bot.Instance.DoSelectPlayerToStealTurn();
+
+                }
+			
             }
 
             break;
@@ -2138,7 +2143,7 @@ public class SOCGameHandler extends GameHandler
             break;
 
         }  // switch ga.getGameState
-
+        
         return promptedRoll;
     }
 
@@ -2484,7 +2489,7 @@ public class SOCGameHandler extends GameHandler
     /**
      * report a trade that has taken place between players, using {@link SOCPlayerElement}
      * and {@link SOCGameTextMsg} messages.  Trades are also reported to robots
-     * by re-sending the accepting player's {@link SOCAcceptOffer} message.
+     * by re-sending the accepting player's {@link SOCAcceptf} message.
      *
      * @param ga        the game
      * @param offering  the number of the player making the offer
@@ -3632,6 +3637,11 @@ public class SOCGameHandler extends GameHandler
                                 StringConnection con = srv.getConnection(ipl.getName());
                                 if (con != null)
                                     con.put(SOCDiscardRequest.toCmd(gn, ipl.getResources().getTotal() / 2));
+                                	if (ipl.equals(Bot.Instance.player) )
+									{
+										System.out.println("*** Server Discard Amount of Resource = " + pl.getResources().getTotal() / 2);
+									}
+                                
                             }
                         }
                     }
@@ -3698,13 +3708,14 @@ public class SOCGameHandler extends GameHandler
             {
                 ga.discard(pn, mes.getResources());  // discard, change gameState
 
+               
+				
                 // Same resource-loss messages are sent in handleROLLDICE after a pirate fleet attack (_SC_PIRI).
 
                 /**
                  * tell the player client that the player discarded the resources
                  */
                 reportRsrcGainLoss(gn, mes.getResources(), true, pn, -1, null, c);
-
                 /**
                  * tell everyone else that the player discarded unknown resources
                  */
@@ -3805,7 +3816,13 @@ public class SOCGameHandler extends GameHandler
                                     // Request to discard half (round down)
                                     StringConnection con = srv.getConnection(pl.getName());
                                     if (con != null)
-                                        con.put(SOCDiscardRequest.toCmd(gn, pl.getResources().getTotal() / 2));
+                                        con.put(SOCDiscardRequest.toCmd(gn, pl.getResources().getTotal() / 2));	
+                                    
+                                    if (pl.equals(Bot.Instance.player))
+									{
+										System.out.println("**************Discarding Player is US");
+									}
+                                    System.out.println("********************Discarded Amount " + pl.getResources().getTotal() / 2);
                                 }
                             }
                         }
@@ -3846,10 +3863,13 @@ public class SOCGameHandler extends GameHandler
 							if (player.getName().equals("Player"))
 							{
 								Bot.Instance.DoDiceTurn();
-							} else
+							} 
+							
+							/*if (player.getCurrentOffer() != null)
 							{
-								Bot.Instance.DoTrade();
-							}
+								System.out.println("****There is a Trade Offer ***"  );
+								Bot.Instance.manager.rejectOffer(ga);
+							}*/
 							
                             break;
                         }
@@ -4254,7 +4274,7 @@ public class SOCGameHandler extends GameHandler
         try
         {
             SOCTradeOffer offer = mes.getOffer();
-
+            
             /**
              * remake the offer with data that we know is accurate,
              * namely the 'from' datum
@@ -4295,6 +4315,14 @@ public class SOCGameHandler extends GameHandler
                         srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
                 }
                 srv.gameList.releaseMonitorForGame(gaName);
+                
+                // TODO: Handle trade by player
+                System.out.println("**********************************************OFFER!");
+                if (Bot.Instance.game.hasTradeOffers())
+				{
+                	Bot.Instance.manager.rejectOffer(ga);
+                	System.out.println("*****************************Offer Rejected");
+				}
             }
         }
         catch (Exception e)
@@ -5981,7 +6009,6 @@ public class SOCGameHandler extends GameHandler
      * @param cg  Game object
      * @param cpn Game's current player number
      * @param c   Connection of discarding/gaining player
-     * @param plName Discarding/gaining player {@code pn}'s name, for GameTextMsg
      * @param pn  Player number who must discard/gain resources
      * @throws IllegalStateException if {@code pn} is current player, or if incorrect game state or incorrect
      *     player status; see {@link SOCGame#playerDiscardOrGainRandom(int, boolean)} for details
@@ -5990,9 +6017,17 @@ public class SOCGameHandler extends GameHandler
         (final SOCGame cg, final int cpn, final StringConnection c, final String plName, final int pn)
         throws IllegalStateException
     {
+    
+    	
         final boolean isDiscard = (cg.getGameState() == SOCGame.WAITING_FOR_DISCARDS);
-
         final SOCResourceSet rset = cg.playerDiscardOrGainRandom(pn, isDiscard);
+
+        
+    	if(pn == Bot.Instance.player.getPlayerNumber())
+    	{
+    		System.out.println("***LOCAL PLAYER MUST DISCARD***");
+    	}
+		System.out.println("***LOCAL PLAYER MUST DISCARD***");
 
         // Report resources lost or gained; see also forceEndGameTurn for same reporting code.
 
