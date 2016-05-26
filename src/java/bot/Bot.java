@@ -598,16 +598,19 @@ public class Bot
 
 			Random random = new Random();
 
+			System.out.println("Could build settlement " + game.couldBuildSettlement(player.getPlayerNumber()));
 			if (game.couldBuildSettlement(player.getPlayerNumber()))
 			{
-				while (player.getResources().contains(game.SETTLEMENT_SET))
+
+				System.out.println("Resources Contain Settlement " + player.getResources().contains(game.SETTLEMENT_SET) );
+				if (player.getResources().contains(game.SETTLEMENT_SET))
 				{
-					System.out.println(
-							"**** getLastRoadCoord : " + Position.NodeToPosition(player.getLastSettlementCoord()));
 					int[] sPositions = player.getPotentialSettlements_arr();
 
 					game.buySettlement(player.getPlayerNumber());
 					int settlementNode = sPositions[random.nextInt(sPositions.length)];
+					
+					System.out.println("*** Settlement Legality "+ player.isLegalSettlement(settlementNode));
 					if (player.isLegalSettlement(settlementNode))
 					{
 						game.putPiece(new SOCSettlement(player, settlementNode, game.getBoard()));
@@ -649,11 +652,13 @@ public class Bot
 				}
 
 				int j = 0;
+				
+				System.out.println("**** NumberOf Pieces " + player.getNumPieces(SOCPlayingPiece.ROAD));
+				System.out.println("**** Resources Contains Road " + player.getResources().contains(SOCGame.ROAD_SET));
 				while (player.getResources().contains(SOCGame.ROAD_SET)
 						&& (player.getNumPieces(SOCPlayingPiece.ROAD) > 0))
 				{
-					if (board.isNodeOnLand(roadNodes.get(j)))
-					{
+					
 						if (!player.isLegalRoad(roadNodes.get(j)))
 						{
 							System.out.println("Illegal Road lies in " + Position.NodeToPosition(roadNodes.get(j)));
@@ -671,10 +676,7 @@ public class Bot
 							System.out.println("There is a road at edge " + Position.NodeToPosition(roadNodes.get(j)));
 
 						}
-
-					}else {
-						j++;
-					}
+						
 					j++;
 				}
 
