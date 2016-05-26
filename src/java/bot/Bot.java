@@ -52,11 +52,9 @@ public class Bot
 				System.out.println("### Adjacent Nodes to Road " + x[i] + " " + Position.NodeToPosition(x[i]));
 			}
 		}
-		List<PositionPair> locationPairs = findAllBestLocations();
-		for (PositionPair id : locationPairs)
-		{
-			// System.out.println("### Best Locations " + id);
-		}
+
+		findBestLocations();
+
 		// System.out.println("Total " + hexes.length + " hexes get.");
 	}
 
@@ -116,10 +114,12 @@ public class Bot
 
 	}
 
-	List<PositionPair> findAllBestLocations()
+	List<PositionPair> findBestLocations()
 	{
 
 		List<PositionPair> bestLocations = new ArrayList<PositionPair>();
+		List<PositionPair> bestLocations2 = new ArrayList<PositionPair>();
+
 		for (int i = 2; i < 13; i++)
 		{
 			for (int j = 2; j < 13; j++)
@@ -130,7 +130,63 @@ public class Bot
 				}
 			}
 		}
+
+		for (int i = 2; i < 13; i++)
+		{
+			for (int j = 2; j < 13; j++)
+			{
+				if (board.isNodeOnLand(Position.PositionToNode(new Position(i, j))))
+				{
+					bestLocations2.add(findBestNodeInSmallCircle(new Position(i, j)));
+				}
+			}
+		}
+
+		Collections.sort(bestLocations, new Comparator<PositionPair>()
+		{
+			@Override
+			public int compare(PositionPair first, PositionPair second)
+			{
+				return Position.PositionToNode(first.Y).compareTo(Position.PositionToNode(second.Y));
+			}
+		});
+
+		Collections.sort(bestLocations2, new Comparator<PositionPair>()
+		{
+			@Override
+			public int compare(PositionPair first, PositionPair second)
+			{
+				return Position.PositionToNode(first.Y).compareTo(Position.PositionToNode(second.Y));
+			}
+		});
+
+		for (int i = 0; i < bestLocations.size(); i++)
+		{
+			System.out.println("Sorted Location " + i + " " + bestLocations.get(i) + " Road Location "
+					+ board.getAdjacentEdgeToNode2Away(bestLocations.get(i).getX(), bestLocations.get(i).getY()));
+			System.out.println("Sorted Location Small " + i + " " + bestLocations2.get(i) + " Road Location "
+					+ board.getEdgeBetweenAdjacentNodes(bestLocations2.get(i).getX(), bestLocations2.get(i).getY()));
+
+		}
+
 		return bestLocations;
+	}
+
+	List<Integer> findRoadDirections()
+	{
+		List<PositionPair> bestLocations = new ArrayList<PositionPair>();
+
+		for (int i = 2; i < 13; i++)
+		{
+			for (int j = 2; j < 13; j++)
+			{
+				if (board.isNodeOnLand(Position.PositionToNode(new Position(i, j))))
+				{
+					bestLocations.add(findBestNodeInCircle(new Position(i, j)));
+				}
+			}
+		}
+		return null;
 	}
 
 	double calculateHexValue(int hexCoord)
@@ -301,6 +357,35 @@ public class Bot
 		});
 	}
 
+	public void graph(int nodeA, int nodeB, int weight)
+	{
+
+	}
+
+	public void findRoadNodes(int nodeX)
+	{
+		Vector<Integer> neighbourNodes = board.getAdjacentNodesToNode(nodeX);
+		int totalValue = 0;
+		int minValue = 1;
+		int settlementWeight = 10;
+
+		for (int i = 0; i < neighbourNodes.size(); i++)
+		{
+			if (board.settlementAtNode(neighbourNodes.get(i)) != null)
+			{
+				settlementWeight = 1 / 10;
+			}
+			totalValue = getNodeValue(Position.NodeToPosition(neighbourNodes.get(i)),
+					board.getAdjacentNodesToNode(neighbourNodes.get(i))) * settlementWeight;
+			totalValue = 1 / totalValue;
+
+			if (minValue > totalValue)
+			{
+				minValue = totalValue;
+			}
+		}
+	}
+
 	public PositionPair findBestNodeInCircle(Position origin)
 	{
 
@@ -349,7 +434,41 @@ public class Bot
 			}
 
 		}
-		//System.out.println("### Best Node in Circle For " + origin + " is " + maxValuePosition + " Value is " + maxValue);
+		System.out
+				.println("### Best Node in Circle For " + origin + " is " + maxValuePosition + " Value is " + maxValue);
+
+		return new PositionPair(origin, maxValuePosition);
+	}
+
+	public PositionPair findBestNodeInSmallCircle(Position origin)
+	{
+
+		int x = origin.X;
+		int y = origin.Y;
+
+		List<Integer> nodeList = new ArrayList<Integer>();
+
+		nodeList = board.getAdjacentNodesToNode(Position.PositionToNode(origin));
+
+		int maxValue = 0;
+		Position maxValuePosition = new Position(0, 0);
+		for (int i = 0; i < nodeList.size(); i++)
+		{
+			int totalValue = 0;
+
+			Vector<Integer> neighbourHexes = board.getAdjacentHexesToNode(nodeList.get(i));
+
+			totalValue = getNodeValue(Position.NodeToPosition(nodeList.get(i)), neighbourHexes);
+
+			if (totalValue > maxValue)
+			{
+				maxValue = totalValue;
+				maxValuePosition = Position.NodeToPosition(nodeList.get(i));
+			}
+
+		}
+		System.out.println(
+				"### Best Node in Small Circle For " + origin + " is " + maxValuePosition + " Value is " + maxValue);
 
 		return new PositionPair(origin, maxValuePosition);
 	}
@@ -434,8 +553,7 @@ public class Bot
 			manager.rejectOffer(game);
 
 		}
-		
-		
+
 	}
 
 	public void getVictoryPoints()
@@ -478,16 +596,58 @@ public class Bot
 				DoBankTrade();
 			}
 
-			if (game.couldBuyDevCard(player.getPlayerNumber()))
+			Random random = new Random();
+
+			if (game.couldBuildSettlement(player.getPlayerNumber()))
+			{
+				while (player.getResources().contains(game.SETTLEMENT_SET))
+				{
+					System.out.println(
+							"**** getLastRoadCoord : " + Position.NodeToPosition(player.getLastSettlementCoord()));
+					int[] sPositions = player.getPotentialSettlements_arr();
+
+					game.buySettlement(player.getPlayerNumber());
+					int settlementNode = sPositions[random.nextInt(sPositions.length)];
+					if (player.isLegalSettlement(settlementNode))
+					{
+						game.putPiece(new SOCSettlement(player, settlementNode, game.getBoard()));
+					} else
+					{
+						System.out.println("Illegal settlement lies in " + settlementNode);
+					}
+				}
+			} else if (game.couldBuyDevCard(player.getPlayerNumber()))
 			{
 				manager.buyDevCard(game);
+
+			}
+			if (player.hasUnplayedDevCards())
+			{
+				if (player.getInventory().hasPlayable(SOCDevCardConstants.MONO))
+				{
+					// manager.playInventoryItem(game,
+					// SOCDevCardConstants.DISC);
+					// manager.monopolyPick(game, 0);
+				}
+				if (player.getInventory().hasPlayable(SOCDevCardConstants.DISC))
+				{
+					// manager.playInventoryItem(game,
+					// SOCDevCardConstants.DISC);
+					// manager.discoveryPick(game, null);
+				}
 			}
 
 			if (game.couldBuildRoad(player.getPlayerNumber()))
 			{
 				List<Integer> roadNodes = player.getRoadNodes();
 
-				/*
+				for (int i = 0; i < roadNodes.size(); i++)
+				{
+					Vector<Integer> edges = board.getAdjacentEdgesToEdge(roadNodes.get(i));
+					Vector<Integer> nodes = board.getAdjacentNodesToEdge(roadNodes.get(i));
+
+				}
+
 				int j = 0;
 				while (player.getResources().contains(SOCGame.ROAD_SET)
 						&& (player.getNumPieces(SOCPlayingPiece.ROAD) > 0))
@@ -498,26 +658,25 @@ public class Bot
 						{
 							System.out.println("Illegal Road lies in " + Position.NodeToPosition(roadNodes.get(j)));
 							j++;
-						}else {
+						} else
+						{
 							System.out.println("ITERATION " + j);
 							game.buyRoad(player.getPlayerNumber());
 							manager.putPiece(game, new SOCRoad(player, roadNodes.get(j), game.getBoard()));
 							System.out.println("Building Road on " + Position.NodeToPosition(roadNodes.get(j)));
 						}
-						
-						
+
 						if (board.roadAtEdge(roadNodes.get(j)) != null)
 						{
 							System.out.println("There is a road at edge " + Position.NodeToPosition(roadNodes.get(j)));
-						
+
 						}
-						
-						
+
+					}else {
+						j++;
 					}
 					j++;
-				}*/
-				
-				
+				}
 
 				int roadLocation = 0;
 				int settlementCoord = player.getLastSettlementCoord();
@@ -527,43 +686,12 @@ public class Bot
 				int bestNode = Position
 						.PositionToNode(findBestNodeInCircle(Position.NodeToPosition(settlementCoord)).Y);
 
-				calculateRoad(settlementCoord, bestNode, 0);
+				// calculateRoad(settlementCoord, bestNode, 0);
 
 				player.isConnectedByRoad(0, 0);
 
 			}
-			if (game.couldBuildSettlement(player.getPlayerNumber()))
-			{
-				if (player.getResources().contains(game.SETTLEMENT_SET))
-				{
-					System.out.println("**** Roads of current player getRoads: " + player.getSettlements());
-					System.out.println(
-							"**** getLastRoadCoord : " + Position.NodeToPosition(player.getLastSettlementCoord()));
-					int[] sPositions = player.getPotentialSettlements_arr();
 
-					game.buySettlement(player.getPlayerNumber());
-					if (possibleSettlementLocation != 0)
-					{
-						game.putPiece(new SOCSettlement(player, possibleSettlementLocation, game.getBoard()));
-
-					}
-					game.putPiece(new SOCSettlement(player, sPositions[0], game.getBoard()));
-
-				} else if (player.hasUnplayedDevCards())
-				{
-					if (player.getInventory().hasPlayable(SOCDevCardConstants.MONO))
-					{
-						manager.playInventoryItem(game, SOCDevCardConstants.DISC);
-						manager.monopolyPick(game, 0);
-					}
-					if (player.getInventory().hasPlayable(SOCDevCardConstants.DISC))
-					{
-						manager.playInventoryItem(game, SOCDevCardConstants.DISC);
-						manager.discoveryPick(game, null);
-					}
-				}
-
-			}
 			if (game.couldBuildCity(player.getPlayerNumber()))
 			{
 				if (player.getResources().contains(game.CITY_SET))
@@ -594,13 +722,15 @@ public class Bot
 	private void calculateRoad(int settlementCoord, int bestNode, int counter)
 	{
 		int roadLocation;
-		boolean hasRemainingRoads = player.getNumPieces(SOCPlayingPiece.ROAD) > 0);
-
-		//Has RESOURCES AND HAS PİECES
+		boolean hasRemainingRoads = (player.getNumPieces(SOCPlayingPiece.ROAD) > 0);
 		boolean hasResources = player.getResources().contains(SOCGame.ROAD_SET);
-		if ( hasResources && hasRemainingRoads)
+
+		List<Integer> roadLocations = new ArrayList<Integer>();
+		List<SOCRoad> roads = new ArrayList<SOCRoad>();
+
+		if (hasResources && hasRemainingRoads)
 		{
-			//IS LOCATİON CONNECTED
+			// IS LOCATİON CONNECTED
 			if (!player.isConnectedByRoad(settlementCoord, bestNode))
 			{
 
@@ -668,11 +798,10 @@ public class Bot
 			System.out.println("**** Best Position Reached : " + player.getLastRoadCoord());
 		}
 
-		//System.out.println("**** getLastRoadCoord : " + player.getLastRoadCoord());
+		// System.out.println("**** getLastRoadCoord : " +
+		// player.getLastRoadCoord());
 
 	}
-
-	
 
 	public void DoBankTrade()
 	{
@@ -927,10 +1056,8 @@ public class Bot
 	private SOCResourceSet discardHand()
 	{
 
-
 		SOCResourceSet resources = player.getResources();
-		
-		
+
 		int discardAmount = (resources.getTotal() / 2);
 		System.out.println("*** Bot Discard Amount " + discardAmount);
 
@@ -1024,7 +1151,6 @@ public class Bot
 			System.out.println(" ####### SET => Player can NOT discard these RESOURCES " + SET.toString());
 		}
 
-		
 		return give;
 	}
 
@@ -1081,9 +1207,10 @@ public class Bot
 	{
 		CustomButton button = new CustomButton("DoWillMoveRobberTurn", () ->
 		{
-			int robberPositionHex = 0;
+			Random random = new Random();
 
-			Vector<Integer> hexList = board.getAdjacentHexesToNode(getAllSettlements().get(0).getCoordinates());
+			Vector<Integer> hexList = board.getAdjacentHexesToNode(
+					getAllSettlements().get(random.nextInt(getAllSettlements().size())).getCoordinates());
 
 			int robberHex = hexList.get(0);
 			Vector<SOCPlayer> players = game.getPlayersOnHex(robberHex);
@@ -1097,6 +1224,7 @@ public class Bot
 
 				} else
 				{
+					playerToSteal = players.get(random.nextInt(players.size())).getPlayerNumber();
 					System.out.println("### Choose Another Player to Steal ###");
 				}
 			}

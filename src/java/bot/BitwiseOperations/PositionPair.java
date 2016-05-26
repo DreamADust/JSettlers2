@@ -1,12 +1,11 @@
 package bot.BitwiseOperations;
 
-public class PositionPair
+public class PositionPair 
 {
 	public Position X;
 	public Position Y;
 	
 
-	
 	public PositionPair(Position x, Position y){
 		X = x;
 		Y = y;
@@ -31,4 +30,26 @@ public class PositionPair
 	{
 		return "Node: " + X + " - Best Node in Circle : " + Y ;
 	}
+	
+	public void setY(Position y)
+	{
+		Y = y;
+	}
+	
+	public void setX(Position x)
+	{
+		X = x;
+	}
+
+	public Integer getY()
+	{
+		return Position.PositionToNode(Y);
+	}
+	
+	public Integer getX()
+	{
+		return Position.PositionToNode(X);
+	}
+
+
 }
