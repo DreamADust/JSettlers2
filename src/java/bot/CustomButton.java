@@ -21,13 +21,13 @@ public class CustomButton
 			{
 				System.out.println("Operation (" + operation + ") action thrown an exception =>");
 				
-				System.out.println("#### STACK TRACE ####");
+				System.out.println("#### EXCEPTION STACK TRACE ####");
 				
 				StackTraceElement[] elems = ex.getStackTrace();
 				for(StackTraceElement elem : elems)
 					System.out.println(elem.toString());
 				
-				System.out.println("#### ~STACK TRACE ####");
+				System.out.println("#### ~EXCEPTION STACK TRACE ####");
 			}
 			
 			System.out.println("Operation (" + operation + ") => " + result);

@@ -58,6 +58,8 @@ public class Bot
 		// System.out.println("Total " + hexes.length + " hexes get.");
 	}
 
+	int possibleSettlementLocation = 0;
+	
 	public String giveHexType(int hexCoord)
 	{
 		switch (board.getHexTypeFromCoord(hexCoord))
@@ -322,6 +324,8 @@ public class Bot
 		return totalValue;
 	}
 
+	
+	
 	private int isPotentialSettlement(int location)
 	{
 		HashSet<Integer> settlementPositions = player.getPotentialSettlements();
@@ -334,6 +338,7 @@ public class Bot
 		}
 	}
 
+	
 	/**
 	 * SOCGame.START3B **** TODO CHANGE .get(0) to intelligent value
 	 */
@@ -355,11 +360,6 @@ public class Bot
 
 			return 0;
 		});
-	}
-
-	public void graph(int nodeA, int nodeB, int weight)
-	{
-
 	}
 
 	public void findRoadNodes(int nodeX)
@@ -563,11 +563,12 @@ public class Bot
 		player.getNeedToDiscard();
 		player.getNumPieces(0); // Number Of Available Piece
 		player.getPieces(); // All Pieces
-		player.getPortFlags(); // Ports Array
+		
 		player.isConnectedByRoad(0, 0); // is Connected
 	}
+	
+	
 
-	int possibleSettlementLocation = 0;
 
 	/**
 	 * SOCGame.PLAY ***TODO NORMAL TURN
@@ -577,14 +578,13 @@ public class Bot
 		if (game.canRollDice(player.getPlayerNumber()))
 		{
 			manager.rollDice(game);
-
 		}
 
 		System.out.println("Player Longest Road => " + player.getLRPaths());
 		System.out.println("Player Longest Road 2 => " + player.calcLongestRoad2());
 		System.out.println("Player Longest Road 2 => " + player.calcLongestRoad2());
 		System.out.println("Numbers Settlements Touch =>" + player.getNumbers());
-		System.out.println("Port Flags=>" + player.getPortFlags());
+		System.out.println("Port Flags=>" + player.getPortFlags().toString());
 		// testGetRoads();
 
 		CustomButton button = new CustomButton("DoDiceTurn", () ->
@@ -598,11 +598,11 @@ public class Bot
 
 			Random random = new Random();
 
-			System.out.println("Could build settlement " + game.couldBuildSettlement(player.getPlayerNumber()));
+			System.out.println("*******************Could build settlement " + game.couldBuildSettlement(player.getPlayerNumber()));
 			if (game.couldBuildSettlement(player.getPlayerNumber()))
 			{
 
-				System.out.println("Resources Contain Settlement " + player.getResources().contains(game.SETTLEMENT_SET) );
+				System.out.println("****************Resources Contain Settlement " + player.getResources().contains(game.SETTLEMENT_SET) );
 				if (player.getResources().contains(game.SETTLEMENT_SET))
 				{
 					int[] sPositions = player.getPotentialSettlements_arr();
@@ -610,19 +610,18 @@ public class Bot
 					game.buySettlement(player.getPlayerNumber());
 					int settlementNode = sPositions[random.nextInt(sPositions.length)];
 					
-					System.out.println("*** Settlement Legality "+ player.isLegalSettlement(settlementNode));
+					System.out.println("****************Settlement Legality "+ player.isLegalSettlement(settlementNode));
 					if (player.isLegalSettlement(settlementNode))
 					{
-						game.putPiece(new SOCSettlement(player, settlementNode, game.getBoard()));
+						manager.putPiece(game, new SOCSettlement(player, settlementNode, game.getBoard()));
 					} else
 					{
-						System.out.println("Illegal settlement lies in " + settlementNode);
+						System.out.println("*****************Illegal settlement lies in " + settlementNode);
 					}
 				}
 			} else if (game.couldBuyDevCard(player.getPlayerNumber()))
 			{
 				manager.buyDevCard(game);
-
 			}
 			if (player.hasUnplayedDevCards())
 			{
@@ -656,7 +655,8 @@ public class Bot
 				System.out.println("**** NumberOf Pieces " + player.getNumPieces(SOCPlayingPiece.ROAD));
 				System.out.println("**** Resources Contains Road " + player.getResources().contains(SOCGame.ROAD_SET));
 				while (player.getResources().contains(SOCGame.ROAD_SET)
-						&& (player.getNumPieces(SOCPlayingPiece.ROAD) > 0))
+						&& (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
+						&& j + 1 < roadNodes.size())
 				{
 					
 						if (!player.isLegalRoad(roadNodes.get(j)))
@@ -674,9 +674,8 @@ public class Bot
 						if (board.roadAtEdge(roadNodes.get(j)) != null)
 						{
 							System.out.println("There is a road at edge " + Position.NodeToPosition(roadNodes.get(j)));
-
 						}
-						
+			
 					j++;
 				}
 
@@ -719,90 +718,6 @@ public class Bot
 			manager.endTurn(game);
 			return 0;
 		});
-	}
-
-	private void calculateRoad(int settlementCoord, int bestNode, int counter)
-	{
-		int roadLocation;
-		boolean hasRemainingRoads = (player.getNumPieces(SOCPlayingPiece.ROAD) > 0);
-		boolean hasResources = player.getResources().contains(SOCGame.ROAD_SET);
-
-		List<Integer> roadLocations = new ArrayList<Integer>();
-		List<SOCRoad> roads = new ArrayList<SOCRoad>();
-
-		if (hasResources && hasRemainingRoads)
-		{
-			// IS LOCATİON CONNECTED
-			if (!player.isConnectedByRoad(settlementCoord, bestNode))
-			{
-
-				int firstEdge = board.getAdjacentEdgeToNode2Away(settlementCoord, bestNode);
-				int inBetweenNode = board.getAdjacentNodeFarEndOfEdge(firstEdge, settlementCoord);
-				int secondEdge = board.getEdgeBetweenAdjacentNodes(inBetweenNode, bestNode);
-
-				// IS THERE ALREADY ROAD
-				if (!player.getPieces().contains(new SOCRoad(player, firstEdge, board)))
-				{
-					//
-					if (board.roadAtEdge(firstEdge) == null)
-					{
-						game.buyRoad(player.getPlayerNumber());
-						manager.putPiece(game, new SOCRoad(player, firstEdge, board));
-						System.out.println("**** First Position Reached : " + player.getLastRoadCoord());
-					} else
-					{
-						if (counter > player.getSettlements().size())
-						{
-							counter = 0;
-							int sCoord = player.getSettlements().get(counter).getCoordinates();
-							Position bCoord = findBestNodeInCircle(Position.NodeToPosition(sCoord)).Y;
-							calculateRoad(sCoord, Position.PositionToNode(bCoord), counter);
-						} else
-						{
-							counter++;
-							int sCoord = player.getSettlements().get(counter).getCoordinates();
-							Position bCoord = findBestNodeInCircle(Position.NodeToPosition(sCoord)).Y;
-							calculateRoad(sCoord, Position.PositionToNode(bCoord), counter);
-						}
-
-					}
-				} else if (player.getPieces().contains(new SOCRoad(player, firstEdge, board)))
-				{
-					if (!player.getPieces().contains(new SOCRoad(player, secondEdge, board)))
-					{
-
-						if (board.roadAtEdge(secondEdge) == null)
-						{
-							game.buyRoad(player.getPlayerNumber());
-							manager.putPiece(game, new SOCRoad(player, secondEdge, board));
-							System.out.println("**** Second Position Reached : " + player.getLastRoadCoord());
-							if (player.isPotentialSettlement(bestNode))
-							{
-								possibleSettlementLocation = bestNode;
-							} else
-							{
-								roadLocation = bestNode;
-								bestNode = Position
-										.PositionToNode(findBestNodeInCircle(Position.NodeToPosition(roadLocation)).Y);
-							}
-
-						} else
-						{
-							calculateRoad(inBetweenNode, bestNode, counter);
-
-						}
-					} else
-					{
-					}
-				}
-			}
-
-			System.out.println("**** Best Position Reached : " + player.getLastRoadCoord());
-		}
-
-		// System.out.println("**** getLastRoadCoord : " +
-		// player.getLastRoadCoord());
-
 	}
 
 	public void DoBankTrade()
@@ -909,19 +824,9 @@ public class Bot
 			}
 
 		}
-
-		player.getResources().getAmount(SOCResourceConstants.CLAY);
-		player.getResources().getAmount(SOCResourceConstants.WHEAT);
-		player.getResources().getAmount(SOCResourceConstants.SHEEP);
-		player.getResources().getAmount(SOCResourceConstants.ORE);
-		player.getResources().getAmount(SOCResourceConstants.WOOD);
-
+		
 		player.getResourceRollStats();
 		player.getRolledResources();
-		player.getResources().contains(SOCResourceConstants.CLAY);
-		player.getResources().contains(SOCResourceConstants.WHEAT);
-		player.getResources().contains(SOCResourceConstants.SHEEP);
-		player.getResources().contains(SOCResourceConstants.WOOD);
 
 	}
 
@@ -1272,4 +1177,97 @@ public class Bot
 		GM.startGame(game);
 	}
 
+}
+
+
+class Methods extends Bot{
+
+	public Methods(SOCPlayer player, SOCGame game, SOCPlayerClient client)
+	{
+		super(player, game, client);
+		// TODO Auto-generated constructor stub
+	}
+
+	private void calculateRoad(int settlementCoord, int bestNode, int counter)
+	{
+		int roadLocation;
+		boolean hasRemainingRoads = (player.getNumPieces(SOCPlayingPiece.ROAD) > 0);
+		boolean hasResources = player.getResources().contains(SOCGame.ROAD_SET);
+
+		List<Integer> roadLocations = new ArrayList<Integer>();
+		List<SOCRoad> roads = new ArrayList<SOCRoad>();
+
+		if (hasResources && hasRemainingRoads)
+		{
+			// IS LOCATİON CONNECTED
+			if (!player.isConnectedByRoad(settlementCoord, bestNode))
+			{
+				int firstEdge = board.getAdjacentEdgeToNode2Away(settlementCoord, bestNode);
+				int inBetweenNode = board.getAdjacentNodeFarEndOfEdge(firstEdge, settlementCoord);
+				int secondEdge = board.getEdgeBetweenAdjacentNodes(inBetweenNode, bestNode);
+
+				// IS THERE ALREADY ROAD
+				if (!player.getPieces().contains(new SOCRoad(player, firstEdge, board)))
+				{
+					//
+					if (board.roadAtEdge(firstEdge) == null)
+					{
+						game.buyRoad(player.getPlayerNumber());
+						manager.putPiece(game, new SOCRoad(player, firstEdge, board));
+						System.out.println("**** First Position Reached : " + player.getLastRoadCoord());
+					} else
+					{
+						if (counter > player.getSettlements().size())
+						{
+							counter = 0;
+							int sCoord = player.getSettlements().get(counter).getCoordinates();
+							Position bCoord = findBestNodeInCircle(Position.NodeToPosition(sCoord)).Y;
+							calculateRoad(sCoord, Position.PositionToNode(bCoord), counter);
+						} else
+						{
+							counter++;
+							int sCoord = player.getSettlements().get(counter).getCoordinates();
+							Position bCoord = findBestNodeInCircle(Position.NodeToPosition(sCoord)).Y;
+							calculateRoad(sCoord, Position.PositionToNode(bCoord), counter);
+						}
+
+					}
+				} else if (player.getPieces().contains(new SOCRoad(player, firstEdge, board)))
+				{
+					if (!player.getPieces().contains(new SOCRoad(player, secondEdge, board)))
+					{
+
+						if (board.roadAtEdge(secondEdge) == null)
+						{
+							game.buyRoad(player.getPlayerNumber());
+							manager.putPiece(game, new SOCRoad(player, secondEdge, board));
+							System.out.println("**** Second Position Reached : " + player.getLastRoadCoord());
+							if (player.isPotentialSettlement(bestNode))
+							{
+								possibleSettlementLocation = bestNode;
+							} else
+							{
+								roadLocation = bestNode;
+								bestNode = Position
+										.PositionToNode(findBestNodeInCircle(Position.NodeToPosition(roadLocation)).Y);
+							}
+
+						} else
+						{
+							calculateRoad(inBetweenNode, bestNode, counter);
+
+						}
+					} else
+					{
+					}
+				}
+			}
+
+			System.out.println("**** Best Position Reached : " + player.getLastRoadCoord());
+		}
+
+		// System.out.println("**** getLastRoadCoord : " +
+		// player.getLastRoadCoord());
+
+	}
 }
